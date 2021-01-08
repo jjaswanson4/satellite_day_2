@@ -1,0 +1,22 @@
+---
+
+- name: publish new content views with the latest content
+  hosts:
+    - satellite
+  gather_facts: false
+  pre_tasks:
+    - name: load in satellite vars
+      include_vars:
+        file: vars/satellite.yml
+  tasks:
+    - name: publish new content views
+      block:
+        - name: get all products
+          redhat.satellite.resource_info:
+            resource: products
+            organization: "{{ satellite.organization }}"
+          register: products
+        - debug:
+            msg: "{{ products }}"
+
+      delegate_to: localhost
