@@ -22,7 +22,7 @@
             - product.repositoy_count | int >= 1
           loop_control:
             loop_var: product
-          loop: "{{ products }}"
+          loop: "{{ products | dict2items }}"
 
 
       delegate_to: localhost
