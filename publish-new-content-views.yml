@@ -16,13 +16,39 @@
             resource: products
             organization: "{{ satellite.organization }}"
           register: products
-        - debug:
-            msg: "{{ product }}"
-            #          when:
-            #            - product.repository_count | int >= 1
+        - name: trigger repo syncs
+          redhat.satellite.repository_sync:
+            product: "{{ product.name }}"
+            organization: "{{ satellite.organization }}"
+          when:
+            - product.repository_count | int >= 1
           loop_control:
             loop_var: product
-          loop: "{{ products | dict2items }}"
-
-
+          loop: "{{ products.resources }}"
+        - name: grab component content views
+          redhat.satellite.resource_info:
+            resource: content_views
+            organization: "{{ satellite.organization }}"
+          register: content_views
+        - name: publish new versions of component content views
+          redhat.satellite.content_view_version:
+            content_view: "{{ component_content_view.name }}"
+            organization: "{{ satellite.organization }}"
+          when:
+              - not component_content_view.composite
+              - "component_content_view.name != 'Default Organization View'"
+          loop_control:
+            loop_var: component_content_view
+          loop: "{{ content_views.resources }}"
+        - name: publish new versions of composite content views and promote
+          redhat.satellite.content_view_version:
+            content_view: "{{ composite_content_view.name }}"
+            lifecycle_environments:
+              - sandbox
+            organization: "{{ satellite.organization }}"
+          when:
+              - composite_content_view.composite
+          loop_control:
+            loop_var: composite_content_view
+          loop: "{{ content_views.resources }}"
       delegate_to: localhost
