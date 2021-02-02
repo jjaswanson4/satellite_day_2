@@ -1,0 +1,35 @@
+---
+
+- name: provision host
+  redhat.satellite.host:
+    username: "{{ provision.satellite.username | deafult(omit) }}"
+    password: "{{ provision.satellite.password | default(omit) }}"
+    server_url: "{{ provision.satellite.url | default(omit) }}"
+    validate_certs: "{{ provision.satellite.validate_certs | default(omit) }}"
+    name: "{{ inventory_hostname }}"
+    hostgroup: "{{ provision.hostgroup }}"
+    compute_attributes:
+      start: "1"
+      cpus: "{{ provision.cpus }}"
+      memory_mb: "{{ provision.memory_mb }}"
+    provision_method: "{{ provision.method }}"
+    image: "{{ provision.image | default(omit) }}"
+    compute_resource: "{{ provision.compute_resource | default(omit) }}"
+    compute_profile: "{{ provision.compute_profile | default(omit) }}"
+    root_pass: "{{ provision.root_pass | default(omit) }}"
+    ip: "{{ ip }}"
+    domain: "{{ provision.dns_zone }}"
+    subnet: "{{ provision.subnet | default(omit) }}"
+    organization: "{{ provision.organization }}"
+    location: "{{ provision.location }}"
+    build: true
+    managed: true
+  delegate_to: localhost
+
+- name: wait for VM to come up
+  wait_for_connection:
+    timeout: 900
+    delay: 90
+
+- name: run the setup module
+  setup:
